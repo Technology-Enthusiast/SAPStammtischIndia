@@ -1,0 +1,479 @@
+*&---------------------------------------------------------------------*
+*& Report zdemo_syntax1
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zdemo_syntax1.
+
+
+CLASS lcl_vbak DEFINITION.
+  PUBLIC SECTION.
+    CLASS-METHODS:
+      factory
+        RETURNING VALUE(r_obj) TYPE REF TO lcl_vbak,
+      demo_conv
+        IMPORTING i_object        TYPE objnum
+        RETURNING VALUE(r_object) TYPE objnum ,
+      demo_ref
+        IMPORTING i_matnr TYPE REF TO data
+                  i_werks TYPE REF TO data
+                  i_sorg  TYPE REF TO data .
+    METHODS :
+      get_vbak_vkorg
+        IMPORTING i_vbeln        TYPE vbeln
+        RETURNING VALUE(r_vkorg) TYPE vkorg.
+ENDCLASS.
+
+CLASS lcl_vbak IMPLEMENTATION .
+  METHOD factory.
+    r_obj = NEW lcl_vbak( ).
+  ENDMETHOD.
+
+  METHOD demo_conv.
+    r_object = i_object .
+  ENDMETHOD.
+
+  METHOD demo_ref .
+
+    FIELD-SYMBOLS: <i_matnr> TYPE STANDARD TABLE.
+    ASSIGN i_matnr->* TO <i_matnr>.
+
+    FIELD-SYMBOLS: <i_werks> TYPE STANDARD TABLE.
+    ASSIGN i_werks->* TO <i_werks>  .
+
+*    FIELD-SYMBOLS: <i_sorg> TYPE vkorg .
+    ASSIGN i_sorg->* TO FIELD-SYMBOL(<i_sorg>) CASTING TYPE  vkorg .
+
+  ENDMETHOD.
+
+  METHOD get_vbak_vkorg .
+    SELECT SINGLE vkorg INTO r_vkorg
+     FROM zvbak
+     WHERE vbeln = i_vbeln.
+  ENDMETHOD.
+
+ENDCLASS.
+
+CLASS lcl_vkorg DEFINITION.
+
+  PUBLIC SECTION.
+
+    METHODS
+      get_vkorg_name
+        IMPORTING i_vkorg       TYPE vkorg
+        RETURNING VALUE(r_name) TYPE name1.
+
+ENDCLASS.
+
+CLASS lcl_vkorg IMPLEMENTATION.
+
+  METHOD get_vkorg_name .
+    IF  i_vkorg  IS NOT INITIAL.
+      r_name  = 'dummy_name'.
+    ENDIF.
+  ENDMETHOD.
+
+ENDCLASS.
+
+CLASS lcl_reduce_ex DEFINITION CREATE PRIVATE FINAL .
+
+  PUBLIC SECTION .
+    CLASS-METHODS : create
+      RETURNING VALUE(r_obj) TYPE REF TO  lcl_reduce_ex.
+
+    METHODS : run.
+
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+
+ENDCLASS .
+
+CLASS lcl_reduce_ex IMPLEMENTATION .
+
+  METHOD create.
+    r_obj = NEW lcl_reduce_ex( ).
+  ENDMETHOD.
+
+  METHOD run.
+
+    DATA : lt_test TYPE TABLE OF i WITH EMPTY KEY.
+    lt_test = VALUE #( FOR j = 1 WHILE j <= 10 ( j ) ) .
+
+    cl_demo_output=>new(
+       )->next_section( |Sum using reduce| )->write(
+      REDUCE i( INIT s = 0
+                FOR i = 1 UNTIL i > 10
+                NEXT s = s + i )
+*       )->next_section( |String Concatenation using reduce| )->write(
+*       REDUCE string( INIT text = |Count down:|
+*                      FOR i = 10 THEN i - 1 UNTIL i = 0
+*                      NEXT text = text && | { i }| )
+*       )->next_section( |Table data| )->write(
+*       lt_test
+*       )->next_section( |Sum using reduce| )->write(
+*       REDUCE i( INIT x = 0
+*                 FOR ls_test IN lt_test
+*                 NEXT x = x + ls_test )
+       )->display( ).
+  ENDMETHOD.
+ENDCLASS.
+
+INTERFACE if_upcast.
+
+ENDINTERFACE.
+
+CLASS cl_upcast DEFINITION CREATE PRIVATE.
+  PUBLIC SECTION.
+    INTERFACES if_upcast.
+    CLASS-METHODS factory RETURNING value(ref) TYPE REF TO cl_upcast.
+
+ENDCLASS.
+
+CLASS cl_upcast IMPLEMENTATION.
+  METHOD factory.
+    ref = NEW #( ).
+  ENDMETHOD.
+ENDCLASS.
+
+INTERFACE test_intf.
+  CLASS-METHODS create DEFAULT FAIL.
+     METHODS :  check  DEFAULT IGNORE
+                      RETURNING VALUE(r) TYPE i.
+
+ENDINTERFACE.
+
+CLASS test_cls DEFINITION.
+  PUBLIC SECTION.
+    INTERFACES test_intf.
+    ALIASES create FOR test_intf~create.
+    ALIASES check FOR test_intf~check.
+
+ENDCLASS.
+
+CLASS test_cls IMPLEMENTATION.
+
+ENDCLASS.
+
+START-OF-SELECTION .
+*******Inline Declarations******************
+**PGL***Only use inline declarations locally.*****
+**** Data Declaration ****
+* Before 7.40
+*DATA : lv_key type char10  .
+*lv_key = 'ABCDEF' .
+
+* After 7.40
+  DATA(lv_key) = '0000000001' .
+*---------------------------------------------
+**** SELECT  ****
+* Before 7.40
+ DATA : lt_vbak TYPE STANDARD TABLE OF zvbak .
+*SELECT * FROM zvbak INTO TABLE lt_vbak
+*           WHERE vbeln = '0000000001'.
+
+* After 7.40
+  SELECT * FROM zvbak INTO TABLE @DATA(lt_zvbak)
+                           WHERE vbeln = '0000000001'.
+
+  SELECT  vbeln , vbtyp , ernam
+               FROM zvbak
+               INTO TABLE @DATA(lt_zvbak_new)
+               WHERE vbeln = @lv_key.     "escape character
+
+**** LOOP  ****
+*Declaration of table work areas/field symbols
+
+* Before 7.40
+
+*DATA : ls_vbak type ZVBAK .
+*field-symbols : <ls_vbak1> type ZVBAK .
+*LOOP AT lt_vbak INTO ls_vbak.
+*ENDLOOP.
+
+* After 7.40
+  LOOP AT lt_vbak INTO DATA(ls_vbak).
+  ENDLOOP.
+  LOOP AT lt_vbak ASSIGNING FIELD-SYMBOL(<ls_vbak>).
+  ENDLOOP.
+*---------------------------------------------
+**** Declaring helper variables  ****
+* Before 7.40
+*DATA lv_count TYPE i .
+*DESCRIBE TABLE lt_vbak LINES lv_count .
+
+  DATA(lv_count) = lines( lt_vbak ).
+*---------------------------------------------
+**** Declaring returning parameter & actual parameter  ****
+
+* Before 7.40
+*  DATA:
+*   lo_vbak  TYPE REF TO lcl_vbak .
+*   lo_vbak = lcl_vbak=>factory( ).
+* After 7.40
+
+  DATA(lo_vbak) =  lcl_vbak=>factory( ) .
+
+*******String Expressions*****************
+
+* Concatenation
+* Before 7.40
+* DATA: lv_excon type string.
+* CONCATENATE 'My name is ' sy-uname INTO lv_excon SEPARATED BY space.
+
+* After 7.40
+  DATA(lv_excon)  = |My name is | && | | && sy-uname && |{ lv_count }|.
+
+* Accessing one row of a table .
+* Before 7.40
+* Data : ls_zvbak TYPE zvbak.
+* READ TABLE lt_zvbak INTO ls_zvbak WITH KEY vbeln =  '0000000001'.
+* DATA : lv_output TYPE string .
+* CONCATENATE 'Sales order number is ' ls_zvbak-vbeln INTO lv_output SEPARATED BY space .
+* cl_demo_output=>display( lv_output ).
+
+* After 7.40
+  cl_demo_output=>display( |'Sales order number is ' { lt_zvbak[ vbeln =  '0000000001' ]-vbeln
+                                                     } | ) .
+
+****Alignment
+  WRITE / |{ 'Left'     WIDTH = 20 ALIGN = LEFT   PAD = '0' }|.
+  WRITE / |{ 'Centre'   WIDTH = 20 ALIGN = CENTER PAD = '0' }|.
+  WRITE / |{ 'Right'    WIDTH = 20 ALIGN = RIGHT  PAD = '0' }|.
+
+
+  DATA(lv_sonumber) = '0000012345'.
+  WRITE / |{ lv_sonumber ALPHA = OUT }|.
+
+*******Constructor operators*********
+*******CONV******
+***CONV can reduce the use of helper variables .
+
+* Before 7.40
+  DATA : lv_matnr TYPE matnr VALUE '123456789' .
+*DATA : lv_helper TYPE objnum ,
+*       lv_actual TYPE objnum ,
+*       lv_output TYPE objnum .
+
+*lv_helper = lv_matnr .
+*lv_actual = lv_helper .
+*lv_output = lcl_vbak=>demo_conv( lv_actual ) .
+
+* After 7.40
+  DATA(lv_objnum) = lcl_vbak=>demo_conv( CONV #( lv_matnr ) ).
+
+
+*****VALUE OPERATOR *********************
+  TYPES : BEGIN OF ty_zvbak,
+            vbeln TYPE zvbak-vbeln,
+            vbtyp TYPE zvbak-vbtyp,
+          END OF ty_zvbak.
+  " Populating structure
+  DATA(ls_zvbak) = VALUE ty_zvbak( vbeln = '0000000001'
+                                   vbtyp = 'B' ) .
+
+
+*Populating internal table
+  DATA : lt_range TYPE RANGE OF i.
+
+  lt_range = VALUE #( sign = 'I'  option = 'BT' ( low = 1  high = 10 )
+                                     ( low = 21 high = 30 )
+                                     ( low = 41 high = 50 )
+                       option = 'GE' ( low = 61 )  ) .
+
+***Inserting DB table programmatically
+*  INSERT zvbak FROM TABLE @( VALUE #(
+* (  vbeln = '0000000001' vbtyp = 'B' ernam = 'U5678' auart = 'YTER' vkorg = '1000' )
+* (  vbeln = '0000000002' vbtyp = 'B' ernam = 'U5678' auart = 'YTER' vkorg = '1000' )
+* (  vbeln = '0000000003' vbtyp = 'B' ernam = 'U5678' auart = 'YTER' vkorg = '1000' )
+* (  vbeln = '0000000004' vbtyp = 'B' ernam = 'U5678' auart = 'YTER' vkorg = '1000' )
+* (  vbeln = '0000000005' vbtyp = 'B' ernam = 'U5678' auart = 'YTER' vkorg = '1000' )
+* ) ).
+
+*****CAST********************************
+**Downcast
+** Before 7.40
+*DATA structdescr TYPE REF TO cl_abap_structdescr.
+*structdescr ?= cl_abap_typedescr=>describe_by_name( 'T100' ).
+*DATA components  TYPE abap_compdescr_tab.
+*components = structdescr->components.
+
+** After 7.40
+  DATA(components) =
+    CAST cl_abap_structdescr(
+         cl_abap_typedescr=>describe_by_name( 'T100' )
+         )->components.
+
+
+** Upcast
+
+DATA(iref1) = CAST if_upcast( cl_upcast=>factory( ) ) .
+DATA(iref2) = cl_upcast=>factory( ).
+
+*******COND & SWITCH Syntax*******************
+
+  DATA: lv_opt1 TYPE i VALUE 1,
+        lv_opt2 TYPE i VALUE 2.
+  DATA(lv_compare) = COND #(
+                       WHEN lv_opt1 < lv_opt2 THEN 'LT'
+                       WHEN lv_opt1 = lv_opt2 THEN 'EQ'
+                       WHEN lv_opt1 > lv_opt2 THEN 'GT'
+                       ELSE 'NA' )    .
+
+  DATA(ls_language) = SWITCH string(
+      sy-langu
+      WHEN 'E' THEN 'English'
+      WHEN 'D' THEN 'German'
+      ELSE THROW cx_sy_conversion_unknown_langu( ) )  .
+
+*******REF Syntax*******************
+DATA : lr_matnr TYPE RANGE OF matnr,
+       lr_werks TYPE RANGE OF werks_d,
+       lv_vkorg TYPE vkorg.
+
+ lcl_vbak=>demo_ref( i_matnr = REF #( lr_matnr[] )
+                     i_werks = REF #( lr_werks[] )
+                     i_sorg = REF #( lv_vkorg ) ).
+
+**************METHOD CHAINING*************
+*
+  DATA(lv_vbeln) =  '0000000001' .
+* Before 7.40
+* DATA:
+*    lo_vbak  TYPE REF TO lcl_vbak,
+*    lo_vkorg  TYPE REF TO lcl_vkorg,
+*    lv_name1 TYPE name1 ,
+*    lv_vkorg TYPE vkorg .
+
+*  lo_vbak = lcl_vbak=>factory( ).
+*  lv_vkorg = lo_vbak->get_vbak_vkorg( EXPORTING i_vbeln = lv_vbeln ).
+*  CREATE OBJECT lo_vkorg.
+*  lv_name1 = lo_vkorg->get_vkorg_name( EXPORTING i_vkorg= lv_vkorg ).
+
+
+  DATA(lv_name) = NEW lcl_vkorg( )->get_vkorg_name( lcl_vbak=>factory( )->get_vbak_vkorg( lv_vbeln ) ).
+
+*******NEW syntax******************
+*Before 7.4
+*FIELD-SYMBOLS : <ls_field> TYPE DATA.
+*DATA : lv_ref TYPE REF TO data .
+*CREATE DATA lv_ref TYPE i.
+*ASSIGN lv_ref->* TO <ls_field> .
+*<ls_field> = '22' .
+
+*After 7.4
+  DATA : lv_ref TYPE REF TO data .
+  lv_ref = NEW i( 22 ) .
+
+*Before 7.4
+*DATA: lv_test_ref TYPE REF TO lcl_vkorg.
+*CREATE OBJECT lv_test_ref .
+
+*After 7.4
+  DATA(lv_test_ref) = NEW lcl_vkorg(  ) .
+
+*******FOR syntax********************************
+**Iteration Operator
+* This causes a loop effectively
+  TYPES:
+    BEGIN OF ty_vbak,
+      vbeln TYPE vbeln,
+      vbtyp TYPE vbtyp,
+      ernam TYPE ernam,
+      vkorg TYPE vkorg,
+    END OF ty_vbak.
+  TYPES:
+    tt_vbak  TYPE SORTED TABLE OF ty_vbak WITH UNIQUE KEY vbeln,
+    tt_vkorg TYPE STANDARD TABLE OF vkorg WITH EMPTY KEY,
+    tt_zvbak TYPE SORTED TABLE OF zvbak WITH UNIQUE KEY vbeln.
+
+  DATA: lr_vkorg TYPE RANGE OF vkorg .
+
+  DATA(gt_vbak) = VALUE tt_vbak( ( vbeln = '9000000001' vbtyp = 'B' ernam = 'UXYZT'  vkorg = 'XYZ1' )
+                                 ( vbeln = '9000000002' vbtyp = 'C' ernam = 'UXYZT'  vkorg = 'XYZ2' )
+                                 ( vbeln = '9000000003' vbtyp = 'A' ernam = 'UXYZT'  vkorg = 'XYZ3' )
+                                 ( vbeln = '9000000004' vbtyp = 'C' ernam = 'UXYZT'  vkorg = 'XYZ4' )  ).
+
+
+
+
+* Before 7.40
+* DATA: gt_vkorg  TYPE tt_vkorg,
+*       gs_vkorg  TYPE vkorg,
+*       gs_vbak   TYPE ty_vbak.
+*
+*LOOP AT gt_vbak INTO gs_vbak.
+*gs_vkorg = gs_vbak-vkorg.
+*APPEND gs_vkorg TO gt_vkorg.
+*ENDLOOP.
+
+* After 7.40
+  DATA(gt_vkorg) = VALUE tt_vkorg( FOR ls_vbak_local IN gt_vbak ( ls_vbak_local-vkorg ) ).
+
+
+  DATA(gt_forex) = VALUE tt_zvbak( FOR lwa_vbak IN gt_vbak  LET base = VALUE zvbak( auart = 'LJKE' )
+                                    IN ( CORRESPONDING #( BASE ( base ) lwa_vbak ) ) ) .
+
+  lr_vkorg = VALUE #( FOR ls_vkorg IN gt_vkorg ( sign = 'I'
+                                                 option = 'EQ'
+                                                 low = ls_vkorg ) ).
+
+******************FILTER**********************************************
+* Before 7.4
+  DATA: lt_vbak_fil    TYPE tt_vbak,
+        lt_vbak_filtered TYPE tt_vbak,
+        lt_filtab TYPE SORTED TABLE OF vbtyp WITH UNIQUE KEY table_line.
+*  LOOP AT gt_vbak INTO DATA(ls_vbak_fil) WHERE vbeln = '9000000001'.
+*    APPEND ls_vbak_fil TO lt_vbak_fil.
+*    CLEAR: ls_vbak_fil .
+*  ENDLOOP.
+
+* After 7.4
+  lt_filtab  = VALUE #( ( 'B' ) ( 'C' ) ).
+  lt_vbak_fil = FILTER #( gt_vbak WHERE vbeln ='9000000001'  ).
+  lt_vbak_filtered = FILTER #( gt_vbak IN  lt_filtab WHERE
+                                  vbtyp =  table_line   ) .
+
+****REDUCE ***********************************************************
+  lcl_reduce_ex=>create(  )->run(  ) .
+
+
+***Table expressions*********************
+* Before 7.40
+*READ TABLE lt_vbak INDEX 1 INTO ls_vbak .
+
+* After 7.40
+* data(ls_vbak) = lt_vbak[ 1 ] .
+
+
+****Line exists********
+* Before 7.40
+*READ TABLE lt_vbak INDEX 1 TRANSPORTING NO FIELDS.
+*IF sy-subrc = 0.
+*ENDIF.
+
+* After 7.40
+  IF line_exists( lt_vbak[ vbeln = '0000000001' ] ) .
+  ENDIF.
+
+**** Get table index*********
+* Before 7.40
+* DATA idx type sy-tabix.
+* READ TABLE lt_vbak INDEX 1
+*  TRANSPORTING NO FIELDS.
+*  idx = sy-tabix.
+
+* After 7.40
+  DATA(idx) = line_index( lt_vbak[  vbeln = '0000000001' ] ).
+
+
+********Table with empty key*******
+TYPES tt_itab TYPE STANDARD TABLE OF string WITH EMPTY KEY.
+
+
+  TRY.
+      test_cls=>create( ).
+    CATCH cx_sy_dyn_call_illegal_method INTO DATA(exc).
+      cl_demo_output=>display( exc->get_text( ) ).
+  ENDTRY.
+
+  cl_demo_output=>display( NEW test_cls( )->check( ) ).
