@@ -6,6 +6,7 @@ The purpose of this repository is to contain all the details of the monthly comm
 ## Core Team
 - [Gaurav Karkara](https://twitter.com/Gauravk817)
 - [Nabheet Madan](https://twitter.com/nabheet)
+- [Mohit Bansal](https://twitter.com/mohitbansalsap) 
 ## Past Meetings
 
 | #Meeting  |  Date |Overview |Material|Recording|
