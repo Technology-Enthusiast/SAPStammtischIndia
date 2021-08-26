@@ -8,6 +8,7 @@ The purpose of this repository is to contain all the details of the monthly comm
 - [Gaurav Karkara](https://twitter.com/Gauravk817)
 - [Nabheet Madan](https://twitter.com/nabheet)
 - [Mohit Bansal](https://twitter.com/mohitbansalsap) 
+- [Akash  Jain](https://www.linkedin.com/in/akashjainsap/)
 
 ## Upcoming Stammtisch
 Next meeting is on 17-July-2021. You can register your seat [here](https://www.eventbrite.com/e/sap-stammtisch-india-meeting-8-tickets-163040593805)
