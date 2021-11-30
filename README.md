@@ -11,7 +11,7 @@ The purpose of this repository is to contain all the details of the monthly comm
 - [Akash  Jain](https://www.linkedin.com/in/akashjainsap/)
 
 ## Upcoming Stammtisch
-Next meeting is on 18-Dec-2021. You can register your seat [here](https: https://www.eventbrite.com/e/sap-stammtisch-india-december-21-tickets-220214877627)
+Next meeting is on 18-Dec-2021. You can register your seat [here](https://www.eventbrite.com/e/sap-stammtisch-india-december-21-tickets-220214877627)
 
 ## Past Meetings
 
