@@ -1,0 +1,57 @@
+{
+  "xsappname": "demo7",
+  "tenant-mode": "dedicated",
+  "scopes": [
+    {
+      "name": "$XSAPPNAME.ProductsViewer",
+      "description": "ProductsViewer"
+    },
+    {
+      "name": "$XSAPPNAME.ProductsManager",
+      "description": "ProductsManager"
+    },
+    {
+      "name": "$XSAPPNAME.SuppliersViewer",
+      "description": "SuppliersViewer"
+    },
+    {
+      "name": "$XSAPPNAME.SuppliersManager",
+      "description": "SuppliersManager"
+    }
+  ],
+  "attributes": [],
+  "role-templates": [
+    {
+      "name": "ProductsViewer",
+      "description": "generated",
+      "scope-references": [
+        "$XSAPPNAME.ProductsViewer"
+      ],
+      "attribute-references": []
+    },
+    {
+      "name": "ProductsManager",
+      "description": "generated",
+      "scope-references": [
+        "$XSAPPNAME.ProductsManager"
+      ],
+      "attribute-references": []
+    },
+    {
+      "name": "SuppliersViewer",
+      "description": "generated",
+      "scope-references": [
+        "$XSAPPNAME.SuppliersViewer"
+      ],
+      "attribute-references": []
+    },
+    {
+      "name": "SuppliersManager",
+      "description": "generated",
+      "scope-references": [
+        "$XSAPPNAME.SuppliersManager"
+      ],
+      "attribute-references": []
+    }
+  ]
+}
