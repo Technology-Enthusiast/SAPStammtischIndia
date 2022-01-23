@@ -1,0 +1,18 @@
+{
+    "authenticationMethod": "route",
+    "routes": [
+        {
+            "source": "^/office-supplies(.*)$",
+            "destination": "srv-api",
+            "authenticationType": "xsuaa",
+            "csrfProtection": false
+        },
+        {
+            "source": "(.*)",
+            "target": "/officesupplies/$1",
+            "service": "html5-apps-repo-rt",
+            "authenticationType": "xsuaa"
+        }
+    ],
+    "welcomeFile": "/index.html"
+}
